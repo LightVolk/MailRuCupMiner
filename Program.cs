@@ -13,12 +13,15 @@ namespace MailRuCupMiner
     {
         public static Logger Logger;
         private static string _address;
+        private static string _port;
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
             Logger = CreateLogger();
 
             _address = Environment.GetEnvironmentVariable("ADDRESS");
+            _port = Environment.GetEnvironmentVariable("Port");
+
             Logger.Information($"Address: {_address}");
 
             using IHost host = CreateHostBuilder(args).Build();
@@ -33,7 +36,7 @@ namespace MailRuCupMiner
             return Host.CreateDefaultBuilder(args).ConfigureServices((_, services) =>
             {
                 services.AddHttpClient();
-                services.AddTransient<Client>(x=>new Client(_address,x.GetService<IHttpClientFactory>().CreateClient()));
+                services.AddTransient<Client>(x=>new Client($"{_address}:{_port}", x.GetService<IHttpClientFactory>().CreateClient()));
                 services.AddSingleton<IMainWorker, MainWorker>(); // главный класс, в котором происходит вся работа
                 services.AddTransient<IExploreService, ExploreService>();
                 services.AddSingleton<IHelthCheckService,HelthCheckService>();
