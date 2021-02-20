@@ -22,6 +22,11 @@ namespace MailRuCupMiner
             _address = Environment.GetEnvironmentVariable("ADDRESS");
             _port = Environment.GetEnvironmentVariable("Port");
 
+//#if DEBUG
+//            _address = "http://127.0.0.1";
+//            _port = "5000";
+//#endif
+
             Logger.Information($"Address: {_address}");
 
             using IHost host = CreateHostBuilder(args).Build();

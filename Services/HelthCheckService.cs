@@ -29,7 +29,7 @@ namespace MailRuCupMiner.Services
                 var helthResultObject = await _client.HealthCheckAsync();
 
                 var codePropInfo = helthResultObject.GetType().GetProperty("code");
-                var codeValue = (string)(codePropInfo.GetValue(helthResultObject, null));
+                var codeValue = (string)(codePropInfo?.GetValue(helthResultObject, null));
 
                 if (string.IsNullOrEmpty(codeValue))
                 {
