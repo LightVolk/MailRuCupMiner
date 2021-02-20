@@ -29,7 +29,6 @@ namespace MailRuCupMiner.Services
         {
             while (true)
             {
-
                 Thread.Sleep(1000);
             }
         }
