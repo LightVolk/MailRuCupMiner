@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading.Tasks;
 using MailRuCupMiner.Services;
 using Mainerspace;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,39 +13,65 @@ namespace MailRuCupMiner
     class Program
     {
         public static Logger Logger;
-        private static string _address;
-        private static string _port;
-        static void Main(string[] args)
+        public static string Address;
+        public static string Port;
+        public static string Scheme;
+        static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-            Logger = CreateLogger();
+            try
+            {
+                Logger = CreateLogger();
+                Logger.Error("Hello World!");
 
-            _address = Environment.GetEnvironmentVariable("ADDRESS");
-            _port = Environment.GetEnvironmentVariable("Port");
+                await Task.Delay(5000);
 
-//#if DEBUG
-//            _address = "http://127.0.0.1";
-//            _port = "5000";
-//#endif
+                Address = Environment.GetEnvironmentVariable("ADDRESS");
+                Port = Environment.GetEnvironmentVariable("Port");
+                Scheme = Environment.GetEnvironmentVariable("Schema");
+           
+#if DEBUG
+                Address = "127.0.0.1";
+                Port = "5000";
+                Scheme = "http";
+#endif
 
-            Logger.Information($"Address: {_address}");
+                while (string.IsNullOrEmpty(Address))
+                {
+                    await Task.Delay(1000);
+                }
 
-            using IHost host = CreateHostBuilder(args).Build();
-            host.RunAsync();
-            host.Services.GetService<IMainWorker>()?.Run(host);
-            
-            Console.ReadLine();
+                var infrastructure = new Infrastructure();
+
+                Address = infrastructure.CreateAddress(Scheme, Address, Port);
+                Logger.Error($"Address: {Address}");
+
+                using IHost host = CreateHostBuilder(args).Build();
+                host.Services.GetService<IMainWorker>()?.Run(host);
+                host.RunAsync().Wait();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "error");
+
+            }
+            finally
+            {
+                Logger.Error("Wait...");
+                Task.Delay(-1).Wait();
+            }
+
         }
 
         static IHostBuilder CreateHostBuilder(string[] args)
-        {
+        {         
             return Host.CreateDefaultBuilder(args).ConfigureServices((_, services) =>
             {
                 services.AddHttpClient();
-                services.AddTransient<Client>(x=>new Client($"{_address}:{_port}", x.GetService<IHttpClientFactory>().CreateClient()));
-                services.AddSingleton<IMainWorker, MainWorker>(); // главный класс, в котором происходит вся работа
+                //services.AddTransient<Client>(x => new Client($"{_address}:{_port}", x.GetService<IHttpClientFactory>().CreateClient()));
+                services.AddTransient<Infrastructure>();
+                services.AddSingleton<IMainWorker, MainWorker>(); // главный класс, в котором происходит вся работа                
                 services.AddTransient<IExploreService, ExploreService>();
-                services.AddSingleton<IHelthCheckService,HelthCheckService>();
+                services.AddTransient<IHelthCheckService, HelthCheckService>();
             });
         }
 

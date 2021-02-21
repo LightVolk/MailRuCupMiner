@@ -21,30 +21,33 @@ namespace MailRuCupMiner.Services
     }
 
     public class MainWorker : IMainWorker
-    {
-        private Client _client;
-        private IHttpClientFactory _clientFactory;
-        public MainWorker(Client client)
+    {        
+        public MainWorker()
         {
-            _client = client;
+     
         }
         public async Task Run(IHost host)
         {
-            
             while (true)
             {
                 try
                 {
-                    if(!await host?.Services?.GetService<IHelthCheckService>()?.IsServerReady())
+                    if (!await host?.Services?.GetService<IHelthCheckService>()?.IsServerReady())
                         continue;
 
-                    await GetReportAsync(host, 0, 0, 1, 1);
-                    await GetReportAsync(host, 0, 0, 2, 2);
-                    await GetReportAsync(host, 0, 0, 5, 5);
-                    await GetReportAsync(host, 10, 10, 1, 1);
-                    await GetReportAsync(host, 10, 10, 2, 2);
-                    await GetReportAsync(host, 10, 10, 5, 5);
-                    Environment.Exit(0);
+                    var report1 = await GetReportAsync(host, 0, 0, 1, 1);
+                    var report2 = await GetReportAsync(host, 0, 0, 2, 2);
+                    var report3 = await GetReportAsync(host, 0, 0, 5, 5);
+                    var report4 = await GetReportAsync(host, 10, 10, 1, 1);
+                    var report5 = await GetReportAsync(host, 10, 10, 2, 2);
+                    var report6 = await GetReportAsync(host, 10, 10, 5, 5);
+
+                    Program.Logger.Error($"report1 done!:{report1.Amount}");
+                    Program.Logger.Error($"report2 done!:{report2.Amount}");
+                    Program.Logger.Error($"report3 done!:{report3.Amount}");
+                    Program.Logger.Error($"report4 done!:{report4.Amount}");
+                    Program.Logger.Error($"report5 done!:{report5.Amount}");
+                    Program.Logger.Error($"report6 done!:{report6.Amount}");
                 }
                 catch (Exception e)
                 {
@@ -53,12 +56,12 @@ namespace MailRuCupMiner.Services
                 }
                 finally
                 {
-                    Thread.Sleep(1000);
-                  //  Environment.Exit(0);
+                    await Task.Delay(1000);
                 }
             }
         }
 
+       
         public void Stop()
         {
 
@@ -69,13 +72,13 @@ namespace MailRuCupMiner.Services
 
         }
 
-        private async Task<Report> GetReportAsync(IHost host,int posX, int posY, int sizeX, int sizeY)
+        private async Task<Report> GetReportAsync(IHost host, int posX, int posY, int sizeX, int sizeY)
         {
             var sw = Stopwatch.StartNew();
             var exploreService = host.Services.GetService<IExploreService>();
-            var report = await exploreService?.ExploreAreaAsync(posX,posY,sizeX,sizeY);
+            var report = await exploreService?.ExploreAreaAsync(posX, posY, sizeX, sizeY);
             sw.Stop();
-           
+
             Program.Logger.Error($"Report. {nameof(report.Amount)}:{report.Amount}; Coordinates: ({report.Area.PosY},{report.Area.PosY}), ({report.Area.SizeX} {report.Area.SizeY}) Time:{sw.ElapsedMilliseconds}");
             return report;
         }

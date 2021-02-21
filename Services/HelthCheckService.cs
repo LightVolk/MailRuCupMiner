@@ -16,16 +16,27 @@ namespace MailRuCupMiner.Services
 
     public class HelthCheckService : IHelthCheckService
     {
-        private readonly Client _client;
-        public HelthCheckService(Client client)
+        private Client _client;
+        private readonly Infrastructure _infr;
+        private readonly IHttpClientFactory _http;
+        public HelthCheckService(Infrastructure infrastructure,IHttpClientFactory httpClientFactory)
         {
-            _client = client;
+            _infr = infrastructure;
+            _http = httpClientFactory;
+            _client = infrastructure.TryCreateClient(null, httpClientFactory.CreateClient());            
         }
 
         public async Task<bool> IsServerReady()
         {
             try
             {
+                if (_client == null)
+                {
+                    Program.Logger.Error($"client is null!");
+                    _client = _infr.TryCreateClient(_client, _http.CreateClient());
+                    return false;
+                }
+
                 var helthResultObject = await _client.HealthCheckAsync();
 
                 var codePropInfo = helthResultObject.GetType().GetProperty("code");
@@ -33,15 +44,21 @@ namespace MailRuCupMiner.Services
 
                 if (string.IsNullOrEmpty(codeValue))
                 {
+                    Program.Logger.Error($"{codeValue} is null! Return false");
                     return false;
                 }
 
-                if (codeValue.Equals("200")) return true;
+                if (codeValue.Equals("200"))
+                {
+                    Program.Logger.Error($"{codeValue} 200! Return true");
+                    return true;
+                }
+                Program.Logger.Error($"{codeValue} not equals 200! Return false");
                 return false;
             }
             catch (Exception e)
             {
-                Log.Error(e,"Error in helth check service");
+                Program.Logger.Error(e,"Error in helth check service");
                 return false;
             }
             

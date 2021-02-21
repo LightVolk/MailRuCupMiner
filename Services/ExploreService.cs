@@ -27,9 +27,9 @@ namespace MailRuCupMiner.Services
     public class ExploreService : IExploreService
     {
         private readonly Client _client;
-        public ExploreService(Client client)
+        public ExploreService(Infrastructure infrastructure,IHttpClientFactory httpClientFactory)
         {
-            _client = client;
+            _client = infrastructure.TryCreateClient(null, httpClientFactory.CreateClient());
         }
 
         /// <summary>
