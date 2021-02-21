@@ -1,7 +1,8 @@
 {
   "profiles": {
     "MailRuCupMiner": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "ADDRESS:\"127.0.0.12\" Port:\"5000\" Schema:\"http\""
     },
     "Docker": {
       "commandName": "Docker"

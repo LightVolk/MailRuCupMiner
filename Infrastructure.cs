@@ -11,8 +11,7 @@ namespace MailRuCupMiner
     public class Infrastructure
     {
         public Client TryCreateClient(Client client,HttpClient httpClient)
-        {
-            
+        {            
             while (client == null)
             {
                 try
@@ -27,6 +26,7 @@ namespace MailRuCupMiner
 #endif
                     var baseUrl = CreateAddress(scheme, address, port);
                     client = new Client(baseUrl, httpClient);
+                    Program.Logger.Error($"Create client succesfully! Address:{baseUrl}");
                 }
                 catch(Exception ex)
                 {
