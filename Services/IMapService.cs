@@ -6,8 +6,8 @@ namespace MailRuCupMiner.Services
 {
     public interface IMapService
     {
-        IEnumerable<Coord> GetMap();
-        IEnumerable<Coord> RecalculateMap(List<Coord> map, Report report);
+        List<Coord> GetMap();
+        List<Coord> RecalculateMap(List<Coord> map, Report report);
         Area GetFreeArea();
     }
 }

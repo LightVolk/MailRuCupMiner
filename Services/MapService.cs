@@ -20,7 +20,7 @@ namespace MailRuCupMiner.Services
 
         }
 
-        public IEnumerable<Coord> GetMap()
+        public List<Coord> GetMap()
         {
             return _map;
         }
@@ -31,7 +31,7 @@ namespace MailRuCupMiner.Services
             _map = InitMap(_map, Constants.X, Constants.Y);
         }
 
-        public IEnumerable<Coord> RecalculateMap(List<Coord> map, Report report)
+        public List<Coord> RecalculateMap(List<Coord> map, Report report)
         {
             if (map == null)
             {

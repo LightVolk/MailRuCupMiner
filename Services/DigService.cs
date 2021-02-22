@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MailRuCupMiner.Clients;
+using Mainerspace;
 
 namespace MailRuCupMiner.Services
 {
@@ -22,9 +23,16 @@ namespace MailRuCupMiner.Services
         }
 
 
-        public void Dig()
+        public async Task<ICollection<string>> Dig(int depth)
         {
-            //_client.di
+            var freeLicense = _licenseService.GetFreeLicence();
+            var freeArea = _mapService.GetFreeArea();
+
+            if(freeArea==null)
+                return new List<string>();
+            
+            var dig = await _client.DigAsync(new Dig(){Depth = depth,LicenseID = freeLicense.Id,PosX = freeArea.PosX,PosY = freeArea.PosY});
+            return dig;
         }
 
     }
