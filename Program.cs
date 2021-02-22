@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
+using MailRuCupMiner.Clients;
 using MailRuCupMiner.Services;
 using Mainerspace;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,51 +47,17 @@ namespace MailRuCupMiner
 
 
                
-#if DEBUG
-                Address = "127.0.0.1";
-                Port = "5000";
-                Schema = "http";
-#endif
-
-#if RELEASE
-                Port = "8000";
-                Schema = "http";
-#endif
 
                 Logger.Error($"{nameof(Address)}:{Address}");
                 Logger.Error($"{nameof(Port)}:{Port}");
                 Logger.Error($"{nameof(Schema)}:{Schema}");
 
-                int count = 5;
-                while (string.IsNullOrEmpty(Address))
-                {
-                    Address = Environment.GetEnvironmentVariable("ADDRESS");
-                    Thread.Sleep(1000);
 
-                    count++;
+                //RunMainWorker();
+                using IHost host = CreateHostBuilder(args).Build();
 
-                    if (count >= 5)
-                    {
-                        Address = "192.168.34.2";
-                        Port = "8000";
-                        Schema = "http";
-                        break;
-                    }
-                }
-
-                RunMainWorker();
-                //using IHost host = CreateHostBuilder(args).Build();
-
-                //var infrastructure = new Infrastructure();
-                //if (string.IsNullOrEmpty(Address))
-                //{
-                //    var cl = infrastructure.TryCreateClient(null,
-                //        host.Services.GetRequiredService<IHttpClientFactory>().CreateClient());
-                //}
-
-
-                //host.Services.GetService<IMainWorker>()?.Run(host).Wait();
-                //host.RunAsync().Wait();
+                host.Services.GetService<IMainWorker>()?.Run(host).Wait();
+                host.RunAsync().Wait();
             }
             catch (Exception e)
             {
@@ -134,10 +101,12 @@ namespace MailRuCupMiner
 
         static IHostBuilder CreateHostBuilder(string[] args)
         {
+            var infrastructure = new Infrastructure();
+            string address = Environment.GetEnvironmentVariable("ADDRESS");
             return Host.CreateDefaultBuilder(args).ConfigureServices((_, services) =>
             {
                 services.AddHttpClient();
-                //services.AddTransient<Client>(x => new Client($"{_address}:{_port}", x.GetService<IHttpClientFactory>().CreateClient()));
+                services.AddSingleton<IClient, Client>(x => new Client(infrastructure.CreateAddress(address), x.GetService<IHttpClientFactory>().CreateClient()));
                 services.AddTransient<Infrastructure>();
                 services.AddSingleton<IMainWorker, MainWorker>(); // главный класс, в котором происходит вся работа                
                 services.AddTransient<IExploreService, ExploreService>();

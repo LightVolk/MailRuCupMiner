@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,8 +34,8 @@ namespace MailRuCupMiner.Services
             {
                 try
                 {
-                    if (!await host?.Services?.GetService<IHelthCheckService>()?.IsServerReady())
-                        continue;
+                    //if (!await host?.Services?.GetService<IHelthCheckService>()?.IsServerReady())
+                    //    continue;
 
 
 
@@ -54,8 +55,7 @@ namespace MailRuCupMiner.Services
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
-                    throw;
+                   Program.Logger.Error(e,"error");
                 }
                 finally
                 {
@@ -67,7 +67,9 @@ namespace MailRuCupMiner.Services
         public void Run()
         {
             var httpClient = new HttpClient();
-            var exploreService = new ExploreService(new Infrastructure(),httpClient);
+            var infr= new Infrastructure();
+            var client = infr.TryCreateClient(null, httpClient);
+            var exploreService = new ExploreService(client);
 
             var report1 =  GetReportAsync(exploreService, 0, 0, 1, 1).Result;
             var report2 =  GetReportAsync(exploreService, 0, 0, 2, 2).Result;

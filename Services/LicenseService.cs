@@ -112,5 +112,10 @@ namespace MailRuCupMiner.Services
                 }
             }
         }
+
+        //public MinerLicense TryGetLicenseFromServer()
+        //{
+        //    _client.IssueLicenseAsync()
+        //}
     }
 }

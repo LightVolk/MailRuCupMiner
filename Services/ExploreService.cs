@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using MailRuCupMiner.Clients;
 using MailRuCupMiner.Models;
 using Mainerspace;
 
@@ -28,7 +29,7 @@ namespace MailRuCupMiner.Services
    
     public class ExploreService : IExploreService
     {
-        private readonly Client _client;
+        private readonly IClient _client;
 
         //private List<Coord> _array0;
         //private List<Coord> _array1;
@@ -44,17 +45,20 @@ namespace MailRuCupMiner.Services
         //private int Nx = 3500;
         //private int Ny = 3500;
 
-       
 
-        public ExploreService(Infrastructure infrastructure, IHttpClientFactory httpClientFactory)
+        public ExploreService(IClient client)
         {
-            _client = infrastructure.TryCreateClient(null, httpClientFactory.CreateClient());
+            _client = client;
         }
+        //public ExploreService(Infrastructure infrastructure, IHttpClientFactory httpClientFactory)
+        //{
+        //    _client = infrastructure.TryCreateClient(null, httpClientFactory.CreateClient());
+        //}
 
-        public ExploreService(Infrastructure infrastructure, HttpClient httpClient)
-        {
-            _client = infrastructure.TryCreateClient(null, httpClient);
-        }
+        //public ExploreService(Infrastructure infrastructure, HttpClient httpClient)
+        //{
+        //    _client = infrastructure.TryCreateClient(null, httpClient);
+        //}
 
         /// <summary>
         /// Исследует область и возвращает количество денег в этой области
