@@ -61,36 +61,36 @@ namespace MailRuCupMiner
                 Logger.Error($"{nameof(Port)}:{Port}");
                 Logger.Error($"{nameof(Schema)}:{Schema}");
 
-                int count = 5;
-                while (string.IsNullOrEmpty(Address))
-                {
-                    Address = Environment.GetEnvironmentVariable("ADDRESS");
-                    Thread.Sleep(1000);
-
-                    count++;
-
-                    if (count >= 5)
-                    {
-                        Address = "192.168.34.2";
-                        Port = "8000";
-                        Schema = "http";
-                        break;
-                    }
-                }
-
-                RunMainWorker();
-                //using IHost host = CreateHostBuilder(args).Build();
-
-                //var infrastructure = new Infrastructure();
-                //if (string.IsNullOrEmpty(Address))
+                //int count = 5;
+                //while (string.IsNullOrEmpty(Address))
                 //{
-                //    var cl = infrastructure.TryCreateClient(null,
-                //        host.Services.GetRequiredService<IHttpClientFactory>().CreateClient());
+                //    Address = Environment.GetEnvironmentVariable("ADDRESS");
+                //    Thread.Sleep(1000);
+
+                //    count++;
+
+                //    if (count >= 5)
+                //    {
+                //        Address = "192.168.34.2";
+                //        Port = "8000";
+                //        Schema = "http";
+                //        break;
+                //    }
                 //}
 
+                //RunMainWorker();
+                using IHost host = CreateHostBuilder(args).Build();
 
-                //host.Services.GetService<IMainWorker>()?.Run(host).Wait();
-                //host.RunAsync().Wait();
+                var infrastructure = new Infrastructure();
+                if (string.IsNullOrEmpty(Address))
+                {
+                    var cl = infrastructure.TryCreateClient(null,
+                        host.Services.GetRequiredService<IHttpClientFactory>().CreateClient());
+                }
+
+
+                host.Services.GetService<IMainWorker>()?.Run(host).Wait();
+                host.RunAsync().Wait();
             }
             catch (Exception e)
             {
