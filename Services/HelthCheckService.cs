@@ -9,6 +9,9 @@ using Serilog;
 
 namespace MailRuCupMiner.Services
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public interface IHelthCheckService
     {
         Task<bool> IsServerReady();

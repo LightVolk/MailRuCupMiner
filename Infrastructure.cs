@@ -16,14 +16,14 @@ namespace MailRuCupMiner
             {
                 try
                 {
-                    var address = Environment.GetEnvironmentVariable("ADDRESS");
-                    var port = Environment.GetEnvironmentVariable("Port");
-                    var scheme = Environment.GetEnvironmentVariable("Schema");
-#if DEBUG
-                    address = "127.0.0.1";
-                    port = "5000";
-                    scheme = "http";
-#endif
+                    var address =  "192.168.34.2"; //Environment.GetEnvironmentVariable("ADDRESS");
+                    var port = "8000";
+                    var scheme = "http";
+//#if DEBUG
+//                    address = "127.0.0.1";
+//                    port = "5000";
+//                    scheme = "http";
+//#endif
                     var baseUrl = CreateAddress(scheme, address, port);
                     client = new Client(baseUrl, httpClient);
                     Program.Logger.Error($"Create client succesfully! Address:{baseUrl}");

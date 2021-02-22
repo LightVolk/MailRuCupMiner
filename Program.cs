@@ -13,7 +13,7 @@ using Serilog.Core;
 
 namespace MailRuCupMiner
 {
-    
+
     class Program
     {
         public class Options
@@ -33,57 +33,64 @@ namespace MailRuCupMiner
         public static string Port;
         public static string Schema;
         private static Options _options;
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             try
             {
                 Logger = CreateLogger();
                 Logger.Error("Hello World!");
 
-                //CommandLine.Parser.Default.ParseArguments<Options>(args).MapResult((opts) => RunOptionsAndReturnExitCode<Options>(opts), //in case parser sucess
-                //    errs => HandleParseError(errs)); //in  case parser fail
-
-                Parser.Default.ParseArguments<Options>(args)
-                    .WithParsed<Options>(o =>
-                    {
-                        _options = o;
-                    });
-                await Task.Delay(5000);
-                Thread.Sleep(5000);
+               
+                
+                Thread.Sleep(5010);
 
 
-                Address = _options?.ADDRESS;
-                Port = _options?.Port;
-                Schema = _options?.Schema;
-           
+               
 #if DEBUG
                 Address = "127.0.0.1";
                 Port = "5000";
                 Schema = "http";
 #endif
+
+#if RELEASE
+                Port = "8000";
+                Schema = "http";
+#endif
+
                 Logger.Error($"{nameof(Address)}:{Address}");
                 Logger.Error($"{nameof(Port)}:{Port}");
                 Logger.Error($"{nameof(Schema)}:{Schema}");
 
+                int count = 5;
                 while (string.IsNullOrEmpty(Address))
                 {
                     Address = Environment.GetEnvironmentVariable("ADDRESS");
-                    Port = Environment.GetEnvironmentVariable("Port");
-                    Schema = Environment.GetEnvironmentVariable("Schema");
-
-                    await Task.Delay(1000);
                     Thread.Sleep(1000);
+
+                    count++;
+
+                    if (count >= 5)
+                    {
+                        Address = "192.168.34.2";
+                        Port = "8000";
+                        Schema = "http";
+                        break;
+                    }
                 }
-                                               
 
-                using IHost host = CreateHostBuilder(args).Build();
+                RunMainWorker();
+                //using IHost host = CreateHostBuilder(args).Build();
 
-                var infrastructure = new Infrastructure();
-                var cl = infrastructure.TryCreateClient(null, host.Services.GetRequiredService<IHttpClientFactory>().CreateClient());
+                //var infrastructure = new Infrastructure();
+                //if (string.IsNullOrEmpty(Address))
+                //{
+                //    var cl = infrastructure.TryCreateClient(null,
+                //        host.Services.GetRequiredService<IHttpClientFactory>().CreateClient());
+                //}
 
-                host.Services.GetService<IMainWorker>()?.Run(host);
-                
-                host.RunAsync().Wait();
+
+                //host.Services.GetService<IMainWorker>()?.Run(host).Wait();
+                //host.RunAsync().Wait();
             }
             catch (Exception e)
             {
@@ -93,9 +100,20 @@ namespace MailRuCupMiner
             finally
             {
                 Logger.Error("Wait...");
-                Task.Delay(-1).Wait();
+                
+
+                while (true)
+                {
+                    Thread.Sleep(1);
+                }
             }
 
+        }
+
+        public static void RunMainWorker()
+        {
+            var mainWorker = new MainWorker();
+            mainWorker.Run();
         }
 
         private static object HandleParseError(IEnumerable<CommandLine.Error> errs)
@@ -115,7 +133,7 @@ namespace MailRuCupMiner
         }
 
         static IHostBuilder CreateHostBuilder(string[] args)
-        {         
+        {
             return Host.CreateDefaultBuilder(args).ConfigureServices((_, services) =>
             {
                 services.AddHttpClient();
@@ -124,7 +142,7 @@ namespace MailRuCupMiner
                 services.AddSingleton<IMainWorker, MainWorker>(); // главный класс, в котором происходит вся работа                
                 services.AddTransient<IExploreService, ExploreService>();
                 services.AddTransient<IHelthCheckService, HelthCheckService>();
-                
+
             });
         }
 
