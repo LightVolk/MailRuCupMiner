@@ -32,6 +32,7 @@ namespace MailRuCupMiner.Services
         {
             var exploreService = host?.Services.GetService<IExploreService>();
             var client = host.Services.GetService<IClient>();
+            var infr = new Infrastructure();
             while (true)
             {
                 try
@@ -55,6 +56,13 @@ namespace MailRuCupMiner.Services
                     Program.Logger.Error($"report5 done!:{report5.Amount}");
                     Program.Logger.Error($"report6 done!:{report6.Amount}");
 
+                    infr.WriteInStdErr($"report1 done!:{report1.Amount}");
+                    infr.WriteInStdErr($"report2 done!:{report2.Amount}");
+                    infr.WriteInStdErr($"report3 done!:{report3.Amount}");
+                    infr.WriteInStdErr($"report4 done!:{report4.Amount}");
+                    infr.WriteInStdErr($"report5 done!:{report5.Amount}");
+                    infr.WriteInStdErr($"report6 done!:{report6.Amount}");
+                    
 
                     var digService = host.Services.GetService<IDigService>();
                     var dig =await digService.Dig(1);
