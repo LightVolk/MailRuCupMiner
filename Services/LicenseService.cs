@@ -72,6 +72,9 @@ namespace MailRuCupMiner.Services
     {
         Task<ICollection<MinerLicense>> GetFreeLicensesSlow();
         MinerLicense GetFreeLicence();
+        void ReturnLicenseBack(MinerLicense license);
+
+        Task<MinerLicense> TryGetPaidLicenseFromServerAsync(int[] money);
     }
 
     public class LicenseService : ILicenseService

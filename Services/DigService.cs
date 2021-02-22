@@ -31,19 +31,33 @@ namespace MailRuCupMiner.Services
         public async Task<ICollection<string>> Dig(int depth)
         {
             var freeLicense = _licenseService.GetFreeLicence();
-            var freeArea = _mapService.GetFreeArea();
-
-            if(freeArea==null)
-                return new List<string>();
-            
-            var dig = await _client.DigAsync(new Dig(){Depth = depth,LicenseID = freeLicense.Id,PosX = freeArea.PosX,PosY = freeArea.PosY});
-
             var infr = new Infrastructure();
-            foreach (var d in dig)
+            try
             {
-                infr.WriteInStdErr(d);
+                var freeArea = _mapService.GetFreeArea();
+
+                if (freeArea == null)
+                    return new List<string>();
+
+                var dig = await _client.DigAsync(new Dig() { Depth = depth, LicenseID = freeLicense.Id, PosX = freeArea.PosX, PosY = freeArea.PosY });
+                
+                foreach (var d in dig)
+                {
+                    infr.WriteInStdErr(d);
+                }
+                return dig;
             }
-            return dig;
+            catch (Exception ex)
+            {
+                infr.WriteInStdErr($"{ex.Message} {ex.StackTrace}");
+            }
+            finally
+            {
+                freeLicense.RegisterDig();
+                _licenseService.ReturnLicenseBack(freeLicense);
+            }
+            
+            return  new List<string>();
         }
 
     }
