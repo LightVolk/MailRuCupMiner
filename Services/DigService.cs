@@ -8,7 +8,12 @@ using Mainerspace;
 
 namespace MailRuCupMiner.Services
 {
-    public class DigService
+    public interface IDigService
+    {
+        Task<ICollection<string>> Dig(int depth);
+    }
+
+    public class DigService : IDigService
     {
         private readonly IClient _client;
         private ILicenseService _licenseService;
@@ -32,6 +37,12 @@ namespace MailRuCupMiner.Services
                 return new List<string>();
             
             var dig = await _client.DigAsync(new Dig(){Depth = depth,LicenseID = freeLicense.Id,PosX = freeArea.PosX,PosY = freeArea.PosY});
+
+            var infr = new Infrastructure();
+            foreach (var d in dig)
+            {
+                infr.WriteInStdErr(d);
+            }
             return dig;
         }
 

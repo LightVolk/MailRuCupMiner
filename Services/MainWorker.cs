@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MailRuCupMiner.Clients;
 using Mainerspace;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -30,6 +31,7 @@ namespace MailRuCupMiner.Services
         public async Task Run(IHost host)
         {
             var exploreService = host?.Services.GetService<IExploreService>();
+            var client = host.Services.GetService<IClient>();
             while (true)
             {
                 try
@@ -52,6 +54,12 @@ namespace MailRuCupMiner.Services
                     Program.Logger.Error($"report4 done!:{report4.Amount}");
                     Program.Logger.Error($"report5 done!:{report5.Amount}");
                     Program.Logger.Error($"report6 done!:{report6.Amount}");
+
+
+                    var digService = host.Services.GetService<IDigService>();
+                    var dig =await digService.Dig(1);
+                    //client.CashAsync()
+                    
                 }
                 catch (Exception e)
                 {
@@ -59,7 +67,7 @@ namespace MailRuCupMiner.Services
                 }
                 finally
                 {
-                    await Task.Delay(1000);
+                    await Task.Delay(10);
                 }
             }
         }

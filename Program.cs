@@ -17,23 +17,13 @@ namespace MailRuCupMiner
 
     class Program
     {
-        public class Options
-        {
-            [Option('A', "ADDRESS")]
-            public string ADDRESS { get; set; }
-
-            [Option("Port")]
-            public string Port { get; set; }
-
-            [Option("Schema")]
-            public string Schema { get; set; }
-        }
+        
 
         public static Logger Logger;
         public static string Address;
         public static string Port;
         public static string Schema;
-        private static Options _options;
+        
         static void Main(string[] args)
         {
             try
@@ -83,21 +73,8 @@ namespace MailRuCupMiner
             mainWorker.Run();
         }
 
-        private static object HandleParseError(IEnumerable<CommandLine.Error> errs)
-        {
-            return null;
-        }
+        
 
-        private static int RunOptionsAndReturnExitCode<TResult>(Options opts)
-        {
-            _options = opts;
-            return 0;
-        }
-
-        private static void RunOptions(Options obj)
-        {
-            _options = obj;
-        }
 
         static IHostBuilder CreateHostBuilder(string[] args)
         {
@@ -111,7 +88,8 @@ namespace MailRuCupMiner
                 services.AddSingleton<IMainWorker, MainWorker>(); // главный класс, в котором происходит вся работа                
                 services.AddSingleton<IExploreService, ExploreService>();
                 services.AddTransient<IHelthCheckService, HelthCheckService>();
-              //  services.AddTransient<Id> DigService
+                services.AddTransient<IDigService, DigService>();
+                
             });
         }
 
