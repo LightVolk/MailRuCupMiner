@@ -70,7 +70,7 @@ namespace MailRuCupMiner.Services
             {
                 for (int j = 0; j < y; j++)
                 {
-                    array.Add(new Coord(i, j, -1));
+                    array.Add(new Coord(i, j, Status.ClearCoord));
                 }
             }
 

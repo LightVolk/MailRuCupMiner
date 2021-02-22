@@ -16,15 +16,17 @@ namespace MailRuCupMiner
             {
                 try
                 {
-                    var address =  "192.168.34.2"; //Environment.GetEnvironmentVariable("ADDRESS");
-                    var port = "8000";
-                    var scheme = "http";
+                    string address = Environment.GetEnvironmentVariable("ADDRESS");
+                    //return $"http://{address}:8000/";
+                    //var address =  "192.168.34.2"; //Environment.GetEnvironmentVariable("ADDRESS");
+                    //var port = "8000";
+                    //var scheme = "http";
 //#if DEBUG
 //                    address = "127.0.0.1";
 //                    port = "5000";
 //                    scheme = "http";
 //#endif
-                    var baseUrl = CreateAddress(scheme, address, port);
+                    var baseUrl = CreateAddress(address); //CreateAddress(scheme, address, port);
                     client = new Client(baseUrl, httpClient);
                     Program.Logger.Error($"Create client succesfully! Address:{baseUrl}");
                 }
@@ -38,6 +40,10 @@ namespace MailRuCupMiner
             return client;
         }
 
+        public string CreateAddress(string baseAddr)
+        {
+            return $"http://{baseAddr}:8000/";
+        }
         public string CreateAddress(string scheme,string address,string port)
         {
             return $"{scheme}://{address}:{port}";
