@@ -9,16 +9,24 @@ using Mainerspace;
 
 namespace MailRuCupMiner.Services
 {
+
+    public enum IsPaid
+    {
+        Free =0,
+        Paid =1
+    }
     public class MinerLicense
     {
         private License _license;
         private int _digAllowed;
         private int _digUsed;
         private bool _isBusy = false;
-        public MinerLicense(License license)
+        private IsPaid _isPaid;
+        public MinerLicense(License license,IsPaid isPaid)
         {
             _license = license;
             _isBusy = false;
+            _isPaid = isPaid;
             _digAllowed = license.DigAllowed;
             _digUsed = license.DigUsed;
             Id = license.Id;
@@ -29,6 +37,11 @@ namespace MailRuCupMiner.Services
         public bool IsBusy()
         {
             return _isBusy;
+        }
+
+        public IsPaid IsPaid()
+        {
+            return _isPaid;
         }
 
         public void SetBusy()
@@ -79,7 +92,7 @@ namespace MailRuCupMiner.Services
             var minerLicenses = new List<MinerLicense>();
             foreach (var license in licenses)
             {
-                var minerLicense = new MinerLicense(license);
+                var minerLicense = new MinerLicense(license,IsPaid.Free);
                 minerLicenses.Add(minerLicense);
             }
 
@@ -113,9 +126,29 @@ namespace MailRuCupMiner.Services
             }
         }
 
-        //public MinerLicense TryGetLicenseFromServer()
-        //{
-        //    _client.IssueLicenseAsync()
-        //}
+        /// <summary>
+        /// Получить платную лицензию.
+        /// Опустить только ОДНУ монету!
+        /// </summary>
+        /// <param name="money">массив с монетой. Должна быть одна штука</param>
+        /// <returns>null -если не удалось получить лицензию или лицензия</returns>
+        public async Task<MinerLicense> TryGetPaidLicenseFromServerAsync(int[] money)
+        {
+            try
+            {
+                if (!money.Any())
+                    return null;
+
+                var paidLicense = await _client.IssueLicenseAsync(money);
+                var paidMinerLicense = new MinerLicense(paidLicense,IsPaid.Paid);
+                return paidMinerLicense;
+            }
+            catch (ApiException ex)
+            {
+                Program.Logger.Error(ex,"error");
+            }
+
+            return null;
+        }
     }
 }
