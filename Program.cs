@@ -109,9 +109,9 @@ namespace MailRuCupMiner
                 services.AddSingleton<IClient, Client>(x => new Client(infrastructure.CreateAddress(address), x.GetService<IHttpClientFactory>().CreateClient()));
                 services.AddTransient<Infrastructure>();
                 services.AddSingleton<IMainWorker, MainWorker>(); // главный класс, в котором происходит вся работа                
-                services.AddTransient<IExploreService, ExploreService>();
+                services.AddSingleton<IExploreService, ExploreService>();
                 services.AddTransient<IHelthCheckService, HelthCheckService>();
-
+              //  services.AddTransient<Id> DigService
             });
         }
 
