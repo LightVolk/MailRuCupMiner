@@ -35,9 +35,6 @@ namespace MailRuCupMiner
                 
                 Thread.Sleep(5010);
 
-
-               
-
                 Logger.Error($"{nameof(Address)}:{Address}");
                 Logger.Error($"{nameof(Port)}:{Port}");
                 Logger.Error($"{nameof(Schema)}:{Schema}");
@@ -83,13 +80,20 @@ namespace MailRuCupMiner
             return Host.CreateDefaultBuilder(args).ConfigureServices((_, services) =>
             {
                 services.AddHttpClient();
+
+                #region singleton
                 services.AddSingleton<IClient, Client>(x => new Client(infrastructure.CreateAddress(address), x.GetService<IHttpClientFactory>().CreateClient()));
-                services.AddTransient<Infrastructure>();
                 services.AddSingleton<IMainWorker, MainWorker>(); // главный класс, в котором происходит вся работа                
                 services.AddSingleton<IExploreService, ExploreService>();
+                #endregion
+
+                #region transient
+                services.AddTransient<Infrastructure>();
                 services.AddTransient<IHelthCheckService, HelthCheckService>();
                 services.AddTransient<IDigService, DigService>();
-                
+                #endregion
+
+
             });
         }
 

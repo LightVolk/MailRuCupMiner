@@ -31,7 +31,6 @@ namespace MailRuCupMiner.Services
         public async Task Run(IHost host)
         {
             var exploreService = host?.Services.GetService<IExploreService>();
-            var client = host.Services.GetService<IClient>();
             var infr = new Infrastructure();
             while (true)
             {
@@ -49,12 +48,7 @@ namespace MailRuCupMiner.Services
                     var report5 = await GetReportAsync(exploreService, 10, 10, 2, 2);
                     var report6 = await GetReportAsync(exploreService, 10, 10, 5, 5);
 
-                    Program.Logger.Error($"report1 done!:{report1.Amount}");
-                    Program.Logger.Error($"report2 done!:{report2.Amount}");
-                    Program.Logger.Error($"report3 done!:{report3.Amount}");
-                    Program.Logger.Error($"report4 done!:{report4.Amount}");
-                    Program.Logger.Error($"report5 done!:{report5.Amount}");
-                    Program.Logger.Error($"report6 done!:{report6.Amount}");
+
 
                     infr.WriteInStdErr($"report1 done!:{report1.Amount}");
                     infr.WriteInStdErr($"report2 done!:{report2.Amount}");
@@ -62,11 +56,13 @@ namespace MailRuCupMiner.Services
                     infr.WriteInStdErr($"report4 done!:{report4.Amount}");
                     infr.WriteInStdErr($"report5 done!:{report5.Amount}");
                     infr.WriteInStdErr($"report6 done!:{report6.Amount}");
-                    
 
-                    var digService = host.Services.GetService<IDigService>();
-                    var dig =await digService.Dig(1);
-                    //client.CashAsync()
+
+
+
+                    var digService = host?.Services?.GetService<IDigService>();
+                    var dig =await digService?.Dig(1);
+                    
                     
                 }
                 catch (Exception e)
@@ -79,6 +75,8 @@ namespace MailRuCupMiner.Services
                 }
             }
         }
+
+
 
         public void Run()
         {

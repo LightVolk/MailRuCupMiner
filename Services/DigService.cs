@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using MailRuCupMiner.Clients;
@@ -19,42 +20,62 @@ namespace MailRuCupMiner.Services
         private ILicenseService _licenseService;
         private IMapService _mapService;
         private IExploreService _exploreService;
-        public DigService(IClient client,ILicenseService licenseService, IMapService mapService,IExploreService exploreService)
+        private Infrastructure _infrastructure;
+        public DigService(ILicenseService licenseService, IMapService mapService,IExploreService exploreService,Infrastructure infrastructure,IHttpClientFactory httpClientFactory)
         {
-            _client = client;
+            _infrastructure = infrastructure;
+            _client = _infrastructure.TryCreateClient(null, httpClientFactory.CreateClient());
             _licenseService = licenseService;
             _mapService = mapService;
             _exploreService = exploreService;
+            
         }
 
 
         public async Task<ICollection<string>> Dig(int depth)
         {
+            _infrastructure.WriteInStdErr("Start dig");
             var freeLicense = _licenseService.GetFreeLicence();
-            var infr = new Infrastructure();
+            
             try
             {
                 var freeArea = _mapService.GetFreeArea();
-
+                
                 if (freeArea == null)
                     return new List<string>();
+                _infrastructure.WriteInStdErr($"freeArea:{freeArea.PosX};{freeArea.PosY};{freeArea.SizeX};{freeArea.SizeY}");
 
-                var dig = await _client.DigAsync(new Dig() { Depth = depth, LicenseID = freeLicense.Id, PosX = freeArea.PosX, PosY = freeArea.PosY });
-                
-                foreach (var d in dig)
+                var exlopeAreaReport =await 
+                    _exploreService.ExploreAreaAsync(freeArea.PosX, freeArea.PosY, (int) freeArea.SizeX, (int) freeArea.SizeX);
+
+                if(exlopeAreaReport==null) return new List<string>();
+
+                if (exlopeAreaReport.Amount > 0)
                 {
-                    infr.WriteInStdErr(d);
+                    var dig = await _client.DigAsync(new Dig()
+                        {Depth = depth, LicenseID = freeLicense.Id, PosX = freeArea.PosX, PosY = freeArea.PosY});
+
+                    foreach (var d in dig)
+                    {
+                        _infrastructure.WriteInStdErr(d);
+                    }
+
+                    return dig;
                 }
-                return dig;
+                else
+                {
+                    return  new List<string>();
+                }
             }
             catch (Exception ex)
             {
-                infr.WriteInStdErr($"{ex.Message} {ex.StackTrace}");
+                _infrastructure.WriteInStdErr($"{ex.Message} {ex.StackTrace}");
             }
             finally
             {
                 freeLicense.RegisterDig();
                 _licenseService.ReturnLicenseBack(freeLicense);
+                _infrastructure.WriteInStdErr("End dig");
             }
             
             return  new List<string>();

@@ -96,17 +96,7 @@ namespace MailRuCupMiner.Services
 
                     if(!success)
                         continue;
-                    //for (int i = coord.X; i < coord.X + n; i++)
-                    //{
-                    //    if (map[i].IsBusy()
-                    //    ) //если клетка в пределах N занята - то пропускаем эту клетку и эту Арию
-                    //    {
-                    //        success = false;
-                    //        break;
-                    //    }
-
-                    //    coordAreaTmp.Add(map[i]);
-                    //}
+                   
 
                     for (int i = coord.Y; i < coord.Y + n; i++)
                     {
@@ -121,18 +111,6 @@ namespace MailRuCupMiner.Services
 
                         coordAreaTmp.Add(findCoord);
                     }
-
-                    //for (int i = coord.Y; i < coord.Y + n; i++)
-                    //{
-                    //    if (map[i].IsBusy()
-                    //    ) //если клетка в пределах N занята - то пропускаем эту клетку и эту Арию
-                    //    {
-                    //        success = false;
-                    //        break;
-                    //    }
-
-                    //    coordAreaTmp.Add(map[i]);
-                    //}
 
                     if (success && coordAreaTmp.Any())
                     {
