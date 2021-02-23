@@ -12,8 +12,8 @@ namespace MailRuCupMiner.Services
 
     public enum IsPaid
     {
-        Free =0,
-        Paid =1
+        Free = 0,
+        Paid = 1
     }
     public class MinerLicense
     {
@@ -22,7 +22,7 @@ namespace MailRuCupMiner.Services
         private int _digUsed;
         private bool _isBusy = false;
         private IsPaid _isPaid;
-        public MinerLicense(License license,IsPaid isPaid)
+        public MinerLicense(License license, IsPaid isPaid)
         {
             _license = license;
             _isBusy = false;
@@ -83,27 +83,30 @@ namespace MailRuCupMiner.Services
         private List<MinerLicense> _licenses;
         private object _lock = new object();
         private Infrastructure _infrastructure;
-        public LicenseService(Infrastructure infrastructure,IHttpClientFactory httpClientFactory)
+        public LicenseService(Infrastructure infrastructure, IHttpClientFactory httpClientFactory)
         {
             _infrastructure = infrastructure;
-            _client = _infrastructure.TryCreateClient(null,httpClientFactory.CreateClient());
+            _client = _infrastructure.TryCreateClient(null, httpClientFactory.CreateClient());
         }
 
         public async Task<ICollection<MinerLicense>> GetFreeLicensesSlow()
         {
             var licenses = await _client.ListLicensesAsync();
-
-            var minerLicenses = new List<MinerLicense>();
-            foreach (var license in licenses)
+            lock (_lock)
             {
-                if (license == null) continue;
+                var minerLicenses = new List<MinerLicense>();
+                foreach (var license in licenses)
+                {
+                    if (license == null) continue;
 
-                var minerLicense = new MinerLicense(license,IsPaid.Free);
-                minerLicenses.Add(minerLicense);
+                    var minerLicense = new MinerLicense(license, IsPaid.Free);
+                    minerLicenses.Add(minerLicense);
+                }
+
+                _infrastructure.WriteLog($"Get '{minerLicenses.Count}'");
+                return minerLicenses;
             }
-
-            _infrastructure.WriteLog($"Get '{minerLicenses.Count}'");
-            return minerLicenses;
+            
         }
 
         private async Task InitFreeLicenses()
@@ -120,20 +123,30 @@ namespace MailRuCupMiner.Services
 
         public async Task<MinerLicense> TryGetFreeLicence()
         {
+
             if (_licenses == null || !_licenses.Any())
                 InitFreeLicenses();
-            var free = _licenses.FirstOrDefault(license =>license!=null&& !license.IsBusy()&&license.CanDig());
-            if (free==null)
+            MinerLicense free;
+            lock (_lock)
+            {
+                free = _licenses.FirstOrDefault(license =>
+                    license != null && !license.IsBusy() && license.CanDig());
+            }
+
+            if (free == null)
             {
                 await InitFreeLicenses();
-                free = _licenses.FirstOrDefault(license => !license.IsBusy() && license.CanDig());
-                if(free==null)
-                    return null;
+                lock (_lock)
+                {
+                    free = _licenses.FirstOrDefault(license => !license.IsBusy() && license.CanDig());
+                    if (free == null)
+                        return null;
+                }
             }
 
             free.SetBusy();
             return free;
-            
+
         }
 
         public void ReturnLicenseBack(MinerLicense license)
@@ -150,7 +163,7 @@ namespace MailRuCupMiner.Services
                     _licenses[i] = license;
                     _licenses[i].SetUnLock();
                     return;
-                    
+
                 }
             }
         }
@@ -169,12 +182,12 @@ namespace MailRuCupMiner.Services
                     return null;
 
                 var paidLicense = await _client.IssueLicenseAsync(money);
-                var paidMinerLicense = new MinerLicense(paidLicense,IsPaid.Paid);
+                var paidMinerLicense = new MinerLicense(paidLicense, IsPaid.Paid);
                 return paidMinerLicense;
             }
             catch (ApiException ex)
             {
-                Program.Logger.Error(ex,"error");
+                Program.Logger.Error(ex, "error");
             }
 
             return null;
