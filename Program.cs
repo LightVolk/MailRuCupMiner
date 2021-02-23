@@ -85,6 +85,8 @@ namespace MailRuCupMiner
                 services.AddSingleton<IClient, Client>(x => new Client(infrastructure.CreateAddress(address), x.GetService<IHttpClientFactory>().CreateClient()));
                 services.AddSingleton<IMainWorker, MainWorker>(); // главный класс, в котором происходит вся работа                
                 services.AddSingleton<IExploreService, ExploreService>();
+                services.AddSingleton<ILicenseService, LicenseService>();
+                services.AddSingleton<IMapService, MapService>();
                 #endregion
 
                 #region transient

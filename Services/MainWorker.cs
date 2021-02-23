@@ -41,21 +41,21 @@ namespace MailRuCupMiner.Services
 
 
 
-                    var report1 = await GetReportAsync(exploreService, 0, 0, 1, 1);
-                    var report2 = await GetReportAsync(exploreService, 0, 0, 2, 2);
-                    var report3 = await GetReportAsync(exploreService, 0, 0, 5, 5);
-                    var report4 = await GetReportAsync(exploreService, 10, 10, 1, 1);
-                    var report5 = await GetReportAsync(exploreService, 10, 10, 2, 2);
-                    var report6 = await GetReportAsync(exploreService, 10, 10, 5, 5);
+                    //var report1 = await GetReportAsync(exploreService, 0, 0, 1, 1);
+                    //var report2 = await GetReportAsync(exploreService, 0, 0, 2, 2);
+                    //var report3 = await GetReportAsync(exploreService, 0, 0, 5, 5);
+                    //var report4 = await GetReportAsync(exploreService, 10, 10, 1, 1);
+                    //var report5 = await GetReportAsync(exploreService, 10, 10, 2, 2);
+                    //var report6 = await GetReportAsync(exploreService, 10, 10, 5, 5);
 
 
 
-                    infr.WriteInStdErr($"report1 done!:{report1.Amount}");
-                    infr.WriteInStdErr($"report2 done!:{report2.Amount}");
-                    infr.WriteInStdErr($"report3 done!:{report3.Amount}");
-                    infr.WriteInStdErr($"report4 done!:{report4.Amount}");
-                    infr.WriteInStdErr($"report5 done!:{report5.Amount}");
-                    infr.WriteInStdErr($"report6 done!:{report6.Amount}");
+                    //infr.WriteInStdErr($"report1 done!:{report1.Amount}");
+                    //infr.WriteInStdErr($"report2 done!:{report2.Amount}");
+                    //infr.WriteInStdErr($"report3 done!:{report3.Amount}");
+                    //infr.WriteInStdErr($"report4 done!:{report4.Amount}");
+                    //infr.WriteInStdErr($"report5 done!:{report5.Amount}");
+                    //infr.WriteInStdErr($"report6 done!:{report6.Amount}");
 
 
 
@@ -67,6 +67,7 @@ namespace MailRuCupMiner.Services
                 }
                 catch (Exception e)
                 {
+                    infr.WriteInStdErr($"{e.Message}{e.StackTrace}");
                    Program.Logger.Error(e,"error");
                 }
                 finally
