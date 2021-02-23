@@ -71,7 +71,7 @@ namespace MailRuCupMiner.Services
     public interface ILicenseService
     {
         Task<ICollection<MinerLicense>> GetFreeLicensesSlow();
-        MinerLicense GetFreeLicence();
+        Task<MinerLicense> TryGetFreeLicence();
         void ReturnLicenseBack(MinerLicense license);
 
         Task<MinerLicense> TryGetPaidLicenseFromServerAsync(int[] money);
@@ -82,10 +82,12 @@ namespace MailRuCupMiner.Services
         private IClient _client;
         private List<MinerLicense> _licenses;
         private object _lock = new object();
-        public LicenseService(IClient client)
+        private Infrastructure _infrastructure;
+        public LicenseService(IClient client,Infrastructure infrastructure)
         {
             _client = client;
             _licenses = GetFreeLicensesSlow()?.Result?.ToList();
+            _infrastructure = infrastructure;
         }
 
         public async Task<ICollection<MinerLicense>> GetFreeLicensesSlow()
@@ -95,19 +97,37 @@ namespace MailRuCupMiner.Services
             var minerLicenses = new List<MinerLicense>();
             foreach (var license in licenses)
             {
+                if (license == null) continue;
+
                 var minerLicense = new MinerLicense(license,IsPaid.Free);
                 minerLicenses.Add(minerLicense);
             }
 
+            _infrastructure.WriteLog($"Get '{minerLicenses.Count}'");
             return minerLicenses;
         }
 
-        public MinerLicense GetFreeLicence()
+        private async Task InitFreeLicenses()
         {
-            var free = _licenses.FirstOrDefault(license => !license.IsBusy());
+            var lics = await GetFreeLicensesSlow();
+            lock (_lock)
+            {
+                if (_licenses == null) _licenses = new List<MinerLicense>();
+                _licenses.AddRange(_licenses);
+                _licenses = _licenses.Where(lic => lic.CanDig()).ToList(); //берем только те лицензии, которыми можно копать
+                _infrastructure.WriteLog($"{nameof(InitFreeLicenses)}:{_licenses.Count}");
+            }
+        }
+
+        public async Task<MinerLicense> TryGetFreeLicence()
+        {
+            var free = _licenses.FirstOrDefault(license => !license.IsBusy()&&license.CanDig());
             if (free==null)
             {
-                return null;
+                await InitFreeLicenses();
+                free = _licenses.FirstOrDefault(license => !license.IsBusy() && license.CanDig());
+                if(free==null)
+                    return null;
             }
 
             free.SetBusy();
@@ -117,6 +137,11 @@ namespace MailRuCupMiner.Services
 
         public void ReturnLicenseBack(MinerLicense license)
         {
+            if (license == null)
+            {
+                _infrastructure.WriteLog($"License is null!");
+                return;
+            }
             for (int i = 0; i < _licenses.Count; i++)
             {
                 if (_licenses[i].Id == license.Id)

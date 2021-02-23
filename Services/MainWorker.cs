@@ -50,12 +50,12 @@ namespace MailRuCupMiner.Services
 
 
 
-                    //infr.WriteInStdErr($"report1 done!:{report1.Amount}");
-                    //infr.WriteInStdErr($"report2 done!:{report2.Amount}");
-                    //infr.WriteInStdErr($"report3 done!:{report3.Amount}");
-                    //infr.WriteInStdErr($"report4 done!:{report4.Amount}");
-                    //infr.WriteInStdErr($"report5 done!:{report5.Amount}");
-                    //infr.WriteInStdErr($"report6 done!:{report6.Amount}");
+                    //infr.WriteLog($"report1 done!:{report1.Amount}");
+                    //infr.WriteLog($"report2 done!:{report2.Amount}");
+                    //infr.WriteLog($"report3 done!:{report3.Amount}");
+                    //infr.WriteLog($"report4 done!:{report4.Amount}");
+                    //infr.WriteLog($"report5 done!:{report5.Amount}");
+                    //infr.WriteLog($"report6 done!:{report6.Amount}");
 
 
 
@@ -67,7 +67,7 @@ namespace MailRuCupMiner.Services
                 }
                 catch (Exception e)
                 {
-                    infr.WriteInStdErr($"{e.Message}{e.StackTrace}");
+                    infr.WriteLog($"{e.Message}{e.StackTrace}");
                    Program.Logger.Error(e,"error");
                 }
                 finally

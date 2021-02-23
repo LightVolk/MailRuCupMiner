@@ -34,8 +34,8 @@ namespace MailRuCupMiner.Services
 
         public async Task<ICollection<string>> Dig(int depth)
         {
-            _infrastructure.WriteInStdErr("Start dig");
-            var freeLicense = _licenseService.GetFreeLicence();
+            _infrastructure.WriteLog("Start dig");
+            var freeLicense = await _licenseService.TryGetFreeLicence();
             
             try
             {
@@ -43,21 +43,22 @@ namespace MailRuCupMiner.Services
                 
                 if (freeArea == null)
                     return new List<string>();
-                _infrastructure.WriteInStdErr($"freeArea:{freeArea.PosX};{freeArea.PosY};{freeArea.SizeX};{freeArea.SizeY}");
+                _infrastructure.WriteLog($"freeArea:{freeArea.PosX};{freeArea.PosY};{freeArea.SizeX};{freeArea.SizeY}");
 
-                var exlopeAreaReport =await 
+                var exloreAreaReport =await 
                     _exploreService.ExploreAreaAsync(freeArea.PosX, freeArea.PosY, (int) freeArea.SizeX, (int) freeArea.SizeX);
 
-                if(exlopeAreaReport==null) return new List<string>();
+                if(exloreAreaReport==null) return new List<string>();
 
-                if (exlopeAreaReport.Amount > 0)
+                if (exloreAreaReport.Amount > 0)
                 {
+                    _infrastructure.WriteLog($"{nameof(exloreAreaReport)}:{exloreAreaReport.Amount}");
                     var dig = await _client.DigAsync(new Dig()
                         {Depth = depth, LicenseID = freeLicense.Id, PosX = freeArea.PosX, PosY = freeArea.PosY});
 
                     foreach (var d in dig)
                     {
-                        _infrastructure.WriteInStdErr(d);
+                        _infrastructure.WriteLog(d);
                     }
 
                     return dig;
@@ -69,13 +70,13 @@ namespace MailRuCupMiner.Services
             }
             catch (Exception ex)
             {
-                _infrastructure.WriteInStdErr($"{ex.Message} {ex.StackTrace}");
+                _infrastructure.WriteLog($"{ex.Message} {ex.StackTrace}");
             }
             finally
             {
-                freeLicense.RegisterDig();
+                freeLicense?.RegisterDig();
                 _licenseService.ReturnLicenseBack(freeLicense);
-                _infrastructure.WriteInStdErr("End dig");
+                _infrastructure.WriteLog("End dig");
             }
             
             return  new List<string>();

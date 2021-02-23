@@ -50,7 +50,7 @@ namespace MailRuCupMiner
             return $"{scheme}://{address}:{port}";
         }
 
-        public void WriteInStdErr(string message)
+        public void WriteLog(string message)
         {
             TextWriter errorWriter = Console.Error;
             errorWriter.WriteLineAsync(message);
