@@ -125,11 +125,11 @@ namespace MailRuCupMiner.Services
         {
 
             if (_licenses == null || !_licenses.Any())
-                InitFreeLicenses();
+                await InitFreeLicenses();
             MinerLicense free;
             lock (_lock)
             {
-                free = _licenses.FirstOrDefault(license =>
+                free = _licenses?.FirstOrDefault(license =>
                     license != null && !license.IsBusy() && license.CanDig());
             }
 
