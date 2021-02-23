@@ -8,6 +8,7 @@ namespace MailRuCupMiner.Services
     {
         List<Coord> GetMap();
         List<Coord> RecalculateMap(List<Coord> map, Report report);
+        void RecalculateMap(Report report);
         Area GetFreeArea();
     }
 }

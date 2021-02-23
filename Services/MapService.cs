@@ -33,31 +33,39 @@ namespace MailRuCupMiner.Services
 
         public List<Coord> RecalculateMap(List<Coord> map, Report report)
         {
-            if (map == null)
+            lock (_lock)
             {
-                map = InitMap(map, Constants.X, Constants.Y);
+                if (map == null)
+                {
+                    map = InitMap(null, Constants.X, Constants.Y);
+                }
+
+                var maxX = report.Area.PosX + report.Area.SizeX;
+                var maxY = report.Area.PosY + report.Area.SizeY;
+
+                Parallel.For(0, map.Count, i =>
+                {
+                    var coord = map[i];
+
+                    if (coord.X > maxX)
+                        return;
+
+                    if (coord.X >= report.Area.PosX && coord.Y >= report.Area.PosY
+                                                    && coord.X <= report.Area.PosX + report.Area.SizeX &&
+                                                    coord.Y <= report.Area.PosY + report.Area.SizeY)
+                        lock (_lock)
+                        {
+                            coord.Status = Status.ExploredCoord;
+                        }
+                });
+
+                return map;
             }
+        }
 
-            var maxX = report.Area.PosX + report.Area.SizeX;
-            var maxY = report.Area.PosY + report.Area.SizeY;
-
-            Parallel.For(0, map.Count, i =>
-            {
-                var coord = map[i];
-
-                if (coord.X > maxX)
-                    return;
-
-                if (coord.X >= report.Area.PosX && coord.Y >= report.Area.PosY
-                                                && coord.X <= report.Area.PosX + report.Area.SizeX &&
-                                                coord.Y <= report.Area.PosY + report.Area.SizeY)
-                    lock (_lock)
-                    {
-                        coord.Status = 0;
-                    }
-            });
-
-            return map;
+        public void RecalculateMap(Report report)
+        {
+             RecalculateMap(_map, report);
         }
 
         /// <summary>

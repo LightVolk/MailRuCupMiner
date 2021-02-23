@@ -62,6 +62,10 @@ namespace MailRuCupMiner.Services
 
                     var digService = host?.Services?.GetService<IDigService>();
                     var dig =await digService?.Dig(1);
+                    foreach (var d in dig)
+                    {
+                        infr.WriteLog(d);
+                    }
                     
                     
                 }
@@ -79,27 +83,27 @@ namespace MailRuCupMiner.Services
 
 
 
-        public void Run()
-        {
-            var httpClient = new HttpClient();
-            var infr= new Infrastructure();
-            var client = infr.TryCreateClient(null, httpClient);
-            var exploreService = new ExploreService(client);
+        //public void Run()
+        //{
+        //    var httpClient = new HttpClient();
+        //    var infr= new Infrastructure();
+        //    var client = infr.TryCreateClient(null, httpClient);
+        //    var exploreService = new ExploreService(client,);
 
-            var report1 =  GetReportAsync(exploreService, 0, 0, 1, 1).Result;
-            var report2 =  GetReportAsync(exploreService, 0, 0, 2, 2).Result;
-            var report3 =  GetReportAsync(exploreService, 0, 0, 5, 5).Result;
-            var report4 =  GetReportAsync(exploreService, 10, 10, 1, 1).Result;
-            var report5 =  GetReportAsync(exploreService, 10, 10, 2, 2).Result;
-            var report6 =  GetReportAsync(exploreService, 10, 10, 5, 5).Result;
+        //    var report1 =  GetReportAsync(exploreService, 0, 0, 1, 1).Result;
+        //    var report2 =  GetReportAsync(exploreService, 0, 0, 2, 2).Result;
+        //    var report3 =  GetReportAsync(exploreService, 0, 0, 5, 5).Result;
+        //    var report4 =  GetReportAsync(exploreService, 10, 10, 1, 1).Result;
+        //    var report5 =  GetReportAsync(exploreService, 10, 10, 2, 2).Result;
+        //    var report6 =  GetReportAsync(exploreService, 10, 10, 5, 5).Result;
 
-            Program.Logger.Error($"report1 done!:{report1.Amount}");
-            Program.Logger.Error($"report2 done!:{report2.Amount}");
-            Program.Logger.Error($"report3 done!:{report3.Amount}");
-            Program.Logger.Error($"report4 done!:{report4.Amount}");
-            Program.Logger.Error($"report5 done!:{report5.Amount}");
-            Program.Logger.Error($"report6 done!:{report6.Amount}");
-        }
+        //    Program.Logger.Error($"report1 done!:{report1.Amount}");
+        //    Program.Logger.Error($"report2 done!:{report2.Amount}");
+        //    Program.Logger.Error($"report3 done!:{report3.Amount}");
+        //    Program.Logger.Error($"report4 done!:{report4.Amount}");
+        //    Program.Logger.Error($"report5 done!:{report5.Amount}");
+        //    Program.Logger.Error($"report6 done!:{report6.Amount}");
+        //}
 
        
         public void Stop()

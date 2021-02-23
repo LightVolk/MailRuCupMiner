@@ -64,11 +64,11 @@ namespace MailRuCupMiner
 
         }
 
-        public static void RunMainWorker()
-        {
-            var mainWorker = new MainWorker();
-            mainWorker.Run();
-        }
+        //public static void RunMainWorker()
+        //{
+        //    var mainWorker = new MainWorker();
+        //    mainWorker.Run();
+        //}
 
         
 
