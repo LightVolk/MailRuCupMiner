@@ -83,15 +83,28 @@ namespace MailRuCupMiner.Services
         private List<MinerLicense> _licenses;
         private object _lock = new object();
         private Infrastructure _infrastructure;
+        private IHttpClientFactory _clientFactory;
         public LicenseService(Infrastructure infrastructure, IHttpClientFactory httpClientFactory)
         {
             _infrastructure = infrastructure;
             _client = _infrastructure.TryCreateClient(null, httpClientFactory.CreateClient());
+            _clientFactory = httpClientFactory;
         }
 
         public async Task<ICollection<MinerLicense>> GetFreeLicensesSlow()
         {
-            var licenses = await _client.ListLicensesAsync();
+            ICollection<License> licenses = null;
+            try
+            {
+                licenses= await _client.ListLicensesAsync();
+            }
+            catch (Exception e)
+            {
+                _infrastructure.WriteLog($"{e.Message} {e.StackTrace}");
+                licenses = await TryGetLicenseCollection();
+                _client = _infrastructure.TryCreateClient(null, _clientFactory.CreateClient());
+            }
+
             lock (_lock)
             {
                 var minerLicenses = new List<MinerLicense>();
@@ -107,6 +120,18 @@ namespace MailRuCupMiner.Services
                 return minerLicenses;
             }
             
+        }
+
+        private async Task<ICollection<License>> TryGetLicenseCollection()
+        {
+            ICollection<License> licenses = null;
+            while (licenses==null)
+            {
+                licenses = await _client.ListLicensesAsync();
+                await Task.Delay(50);
+            }
+
+            return licenses;
         }
 
         private async Task InitFreeLicenses()
