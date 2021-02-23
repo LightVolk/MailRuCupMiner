@@ -122,7 +122,7 @@ namespace MailRuCupMiner.Services
         {
             if (_licenses == null || !_licenses.Any())
                 InitFreeLicenses();
-            var free = _licenses.FirstOrDefault(license => !license.IsBusy()&&license.CanDig());
+            var free = _licenses.FirstOrDefault(license =>license!=null&& !license.IsBusy()&&license.CanDig());
             if (free==null)
             {
                 await InitFreeLicenses();
