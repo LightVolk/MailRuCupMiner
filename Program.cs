@@ -17,23 +17,13 @@ namespace MailRuCupMiner
 
     class Program
     {
-        public class Options
-        {
-            [Option('A', "ADDRESS")]
-            public string ADDRESS { get; set; }
-
-            [Option("Port")]
-            public string Port { get; set; }
-
-            [Option("Schema")]
-            public string Schema { get; set; }
-        }
+        
 
         public static Logger Logger;
         public static string Address;
         public static string Port;
         public static string Schema;
-        private static Options _options;
+        
         static void Main(string[] args)
         {
             try
@@ -44,9 +34,6 @@ namespace MailRuCupMiner
                
                 
                 Thread.Sleep(5010);
-
-
-               
 
                 Logger.Error($"{nameof(Address)}:{Address}");
                 Logger.Error($"{nameof(Port)}:{Port}");
@@ -77,27 +64,14 @@ namespace MailRuCupMiner
 
         }
 
-        public static void RunMainWorker()
-        {
-            var mainWorker = new MainWorker();
-            mainWorker.Run();
-        }
+        //public static void RunMainWorker()
+        //{
+        //    var mainWorker = new MainWorker();
+        //    mainWorker.Run();
+        //}
 
-        private static object HandleParseError(IEnumerable<CommandLine.Error> errs)
-        {
-            return null;
-        }
+        
 
-        private static int RunOptionsAndReturnExitCode<TResult>(Options opts)
-        {
-            _options = opts;
-            return 0;
-        }
-
-        private static void RunOptions(Options obj)
-        {
-            _options = obj;
-        }
 
         static IHostBuilder CreateHostBuilder(string[] args)
         {
@@ -106,11 +80,21 @@ namespace MailRuCupMiner
             return Host.CreateDefaultBuilder(args).ConfigureServices((_, services) =>
             {
                 services.AddHttpClient();
+
+                #region singleton
                 services.AddSingleton<IClient, Client>(x => new Client(infrastructure.CreateAddress(address), x.GetService<IHttpClientFactory>().CreateClient()));
-                services.AddTransient<Infrastructure>();
                 services.AddSingleton<IMainWorker, MainWorker>(); // главный класс, в котором происходит вся работа                
-                services.AddTransient<IExploreService, ExploreService>();
+                services.AddSingleton<IExploreService, ExploreService>();
+                services.AddSingleton<ILicenseService, LicenseService>();
+                services.AddSingleton<IMapService, MapService>();
+                #endregion
+
+                #region transient
+                services.AddTransient<Infrastructure>();
                 services.AddTransient<IHelthCheckService, HelthCheckService>();
+                services.AddTransient<IDigService, DigService>();
+                #endregion
+
 
             });
         }

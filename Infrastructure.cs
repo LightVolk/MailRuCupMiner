@@ -1,6 +1,7 @@
 ﻿using Mainerspace;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -47,6 +48,12 @@ namespace MailRuCupMiner
         public string CreateAddress(string scheme,string address,string port)
         {
             return $"{scheme}://{address}:{port}";
+        }
+
+        public void WriteLog(string message)
+        {
+            TextWriter errorWriter = Console.Error;
+            errorWriter.WriteLineAsync(message);
         }
     }
 }

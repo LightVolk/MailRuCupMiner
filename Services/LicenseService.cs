@@ -12,8 +12,8 @@ namespace MailRuCupMiner.Services
 
     public enum IsPaid
     {
-        Free =0,
-        Paid =1
+        Free = 0,
+        Paid = 1
     }
     public class MinerLicense
     {
@@ -22,7 +22,7 @@ namespace MailRuCupMiner.Services
         private int _digUsed;
         private bool _isBusy = false;
         private IsPaid _isPaid;
-        public MinerLicense(License license,IsPaid isPaid)
+        public MinerLicense(License license, IsPaid isPaid)
         {
             _license = license;
             _isBusy = false;
@@ -71,7 +71,10 @@ namespace MailRuCupMiner.Services
     public interface ILicenseService
     {
         Task<ICollection<MinerLicense>> GetFreeLicensesSlow();
-        MinerLicense GetFreeLicence();
+        Task<MinerLicense> TryGetFreeLicence();
+        void ReturnLicenseBack(MinerLicense license);
+
+        Task<MinerLicense> TryGetPaidLicenseFromServerAsync(int[] money);
     }
 
     public class LicenseService : ILicenseService
@@ -79,41 +82,105 @@ namespace MailRuCupMiner.Services
         private IClient _client;
         private List<MinerLicense> _licenses;
         private object _lock = new object();
-        public LicenseService(IClient client)
+        private Infrastructure _infrastructure;
+        private IHttpClientFactory _clientFactory;
+        public LicenseService(Infrastructure infrastructure, IHttpClientFactory httpClientFactory)
         {
-            _client = client;
-            _licenses = GetFreeLicensesSlow()?.Result?.ToList();
+            _infrastructure = infrastructure;
+            _client = _infrastructure.TryCreateClient(null, httpClientFactory.CreateClient());
+            _clientFactory = httpClientFactory;
         }
 
         public async Task<ICollection<MinerLicense>> GetFreeLicensesSlow()
         {
-            var licenses = await _client.ListLicensesAsync();
-
-            var minerLicenses = new List<MinerLicense>();
-            foreach (var license in licenses)
+            ICollection<License> licenses = null;
+            try
             {
-                var minerLicense = new MinerLicense(license,IsPaid.Free);
-                minerLicenses.Add(minerLicense);
+                licenses= await _client.ListLicensesAsync();
+            }
+            catch (Exception e)
+            {
+                _infrastructure.WriteLog($"{e.Message} {e.StackTrace}");
+                licenses = await TryGetLicenseCollection();
+                _client = _infrastructure.TryCreateClient(null, _clientFactory.CreateClient());
             }
 
-            return minerLicenses;
+            lock (_lock)
+            {
+                var minerLicenses = new List<MinerLicense>();
+                foreach (var license in licenses)
+                {
+                    if (license == null) continue;
+
+                    var minerLicense = new MinerLicense(license, IsPaid.Free);
+                    minerLicenses.Add(minerLicense);
+                }
+
+                _infrastructure.WriteLog($"Get '{minerLicenses.Count}'");
+                return minerLicenses;
+            }
+            
         }
 
-        public MinerLicense GetFreeLicence()
+        private async Task<ICollection<License>> TryGetLicenseCollection()
         {
-            var free = _licenses.FirstOrDefault(license => !license.IsBusy());
-            if (free==null)
+            ICollection<License> licenses = null;
+            while (licenses==null)
             {
-                return null;
+                licenses = await _client.ListLicensesAsync();
+                await Task.Delay(50);
+            }
+
+            return licenses;
+        }
+
+        private async Task InitFreeLicenses()
+        {
+            var lics = await GetFreeLicensesSlow();
+            lock (_lock)
+            {
+                if (_licenses == null) _licenses = new List<MinerLicense>();
+                _licenses.AddRange(_licenses);
+                _licenses = _licenses.Where(lic => lic.CanDig()).ToList(); //берем только те лицензии, которыми можно копать
+                _infrastructure.WriteLog($"{nameof(InitFreeLicenses)}:{_licenses.Count}");
+            }
+        }
+
+        public async Task<MinerLicense> TryGetFreeLicence()
+        {
+
+            if (_licenses == null || !_licenses.Any())
+                await InitFreeLicenses();
+            MinerLicense free;
+            lock (_lock)
+            {
+                free = _licenses?.FirstOrDefault(license =>
+                    license != null && !license.IsBusy() && license.CanDig());
+            }
+
+            if (free == null)
+            {
+                await InitFreeLicenses();
+                lock (_lock)
+                {
+                    free = _licenses.FirstOrDefault(license => !license.IsBusy() && license.CanDig());
+                    if (free == null)
+                        return null;
+                }
             }
 
             free.SetBusy();
             return free;
-            
+
         }
 
         public void ReturnLicenseBack(MinerLicense license)
         {
+            if (license == null)
+            {
+                _infrastructure.WriteLog($"License is null!");
+                return;
+            }
             for (int i = 0; i < _licenses.Count; i++)
             {
                 if (_licenses[i].Id == license.Id)
@@ -121,7 +188,7 @@ namespace MailRuCupMiner.Services
                     _licenses[i] = license;
                     _licenses[i].SetUnLock();
                     return;
-                    
+
                 }
             }
         }
@@ -140,12 +207,12 @@ namespace MailRuCupMiner.Services
                     return null;
 
                 var paidLicense = await _client.IssueLicenseAsync(money);
-                var paidMinerLicense = new MinerLicense(paidLicense,IsPaid.Paid);
+                var paidMinerLicense = new MinerLicense(paidLicense, IsPaid.Paid);
                 return paidMinerLicense;
             }
             catch (ApiException ex)
             {
-                Program.Logger.Error(ex,"error");
+                Program.Logger.Error(ex, "error");
             }
 
             return null;
