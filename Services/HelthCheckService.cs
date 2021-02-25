@@ -26,7 +26,7 @@ namespace MailRuCupMiner.Services
         {
             _infr = infrastructure;
             _http = httpClientFactory;
-            _client = infrastructure.TryCreateClient(null, httpClientFactory.CreateClient());            
+            _client = infrastructure.TryCreateClient( httpClientFactory.CreateClient());            
         }
 
         public async Task<bool> IsServerReady()
@@ -36,7 +36,7 @@ namespace MailRuCupMiner.Services
                 if (_client == null)
                 {
                     Program.Logger.Error($"client is null!");
-                    _client = _infr.TryCreateClient(_client, _http.CreateClient());
+                    _client = _infr.TryCreateClient(_http.CreateClient());
                     return false;
                 }
 

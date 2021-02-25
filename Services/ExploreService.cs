@@ -48,7 +48,7 @@ namespace MailRuCupMiner.Services
 
         public ExploreService(Infrastructure infrastructure,IHttpClientFactory httpClientFactory)
         {
-            _client = infrastructure.TryCreateClient(null, httpClientFactory.CreateClient());
+            _client = infrastructure.TryCreateClient(httpClientFactory.CreateClient());
         }
         //public ExploreService(Infrastructure infrastructure, IHttpClientFactory httpClientFactory)
         //{

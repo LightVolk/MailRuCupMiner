@@ -71,7 +71,7 @@ namespace MailRuCupMiner.Services
     public interface ILicenseService
     {
         Task<ICollection<MinerLicense>> GetFreeLicensesSlow();
-        Task<MinerLicense> TryGetFreeLicence();
+        Task<MinerLicense> TryGetLicence();
         void ReturnLicenseBack(MinerLicense license);
 
         Task<MinerLicense> TryGetPaidLicenseFromServerAsync(int[] money);
@@ -87,7 +87,7 @@ namespace MailRuCupMiner.Services
         public LicenseService(Infrastructure infrastructure, IHttpClientFactory httpClientFactory)
         {
             _infrastructure = infrastructure;
-            _client = _infrastructure.TryCreateClient(null, httpClientFactory.CreateClient());
+            _client = _infrastructure.TryCreateClient(httpClientFactory.CreateClient());
             _clientFactory = httpClientFactory;
         }
 
@@ -102,7 +102,7 @@ namespace MailRuCupMiner.Services
             {
                 _infrastructure.WriteLog($"{e.Message} {e.StackTrace}");
                 licenses = await TryGetLicenseCollection();
-                _client = _infrastructure.TryCreateClient(null, _clientFactory.CreateClient());
+                _client = _infrastructure.TryCreateClient(_clientFactory.CreateClient());
             }
 
             lock (_lock)
@@ -146,7 +146,7 @@ namespace MailRuCupMiner.Services
             }
         }
 
-        public async Task<MinerLicense> TryGetFreeLicence()
+        public async Task<MinerLicense> TryGetLicence()
         {
 
             if (_licenses == null || !_licenses.Any())
@@ -196,6 +196,7 @@ namespace MailRuCupMiner.Services
         /// <summary>
         /// Получить платную лицензию.
         /// Опустить только ОДНУ монету!
+        /// За бесплатной монетой - надо послать пустой массив
         /// </summary>
         /// <param name="money">массив с монетой. Должна быть одна штука</param>
         /// <returns>null -если не удалось получить лицензию или лицензия</returns>
@@ -203,9 +204,6 @@ namespace MailRuCupMiner.Services
         {
             try
             {
-                if (!money.Any())
-                    return null;
-
                 var paidLicense = await _client.IssueLicenseAsync(money);
                 var paidMinerLicense = new MinerLicense(paidLicense, IsPaid.Paid);
                 return paidMinerLicense;

@@ -11,17 +11,14 @@ namespace MailRuCupMiner
 {
     public class Infrastructure
     {
-        public Client TryCreateClient(Client client,HttpClient httpClient)
-        {            
+        public Client TryCreateClient(HttpClient httpClient)
+        {
+            Client client = null;
             while (client == null)
             {
                 try
                 {
                     string address = Environment.GetEnvironmentVariable("ADDRESS");
-                    //return $"http://{address}:8000/";
-                    //var address =  "192.168.34.2"; //Environment.GetEnvironmentVariable("ADDRESS");
-                    //var port = "8000";
-                    //var scheme = "http";
 //#if DEBUG
 //                    address = "127.0.0.1";
 //                    port = "5000";

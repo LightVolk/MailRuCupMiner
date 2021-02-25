@@ -24,7 +24,7 @@ namespace MailRuCupMiner.Services
         public DigService(ILicenseService licenseService, IMapService mapService, IExploreService exploreService, Infrastructure infrastructure, IHttpClientFactory httpClientFactory)
         {
             _infrastructure = infrastructure;
-            _client = _infrastructure.TryCreateClient(null, httpClientFactory.CreateClient());
+            _client = _infrastructure.TryCreateClient(httpClientFactory.CreateClient());
             _licenseService = licenseService;
             _mapService = mapService;
             _exploreService = exploreService;
@@ -35,7 +35,7 @@ namespace MailRuCupMiner.Services
         public async Task<ICollection<string>> Dig(int depth)
         {
             _infrastructure.WriteLog("Start dig");
-            var freeLicense = await _licenseService.TryGetFreeLicence();
+            var freeLicense = await _licenseService.TryGetLicence();
 
             try
             {
