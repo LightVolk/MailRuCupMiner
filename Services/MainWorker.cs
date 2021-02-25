@@ -61,13 +61,14 @@ namespace MailRuCupMiner.Services
 
 
                     var digService = host?.Services?.GetService<IDigService>();
-                    var dig =await digService?.Dig(1);
-                    foreach (var d in dig)
+                    if (digService != null)
                     {
-                        infr.WriteLog(d);
+                        var dig =await digService?.Dig(1);
+                        foreach (var d in dig)
+                        {
+                            infr.WriteLog(d);
+                        }
                     }
-                    
-                    
                 }
                 catch (Exception e)
                 {
