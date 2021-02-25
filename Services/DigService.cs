@@ -17,11 +17,11 @@ namespace MailRuCupMiner.Services
     public class DigService : IDigService
     {
         private readonly IClient _client;
-        private ILicenseService _licenseService;
-        private IMapService _mapService;
-        private IExploreService _exploreService;
-        private Infrastructure _infrastructure;
-        public DigService(ILicenseService licenseService, IMapService mapService, IExploreService exploreService, Infrastructure infrastructure, IHttpClientFactory httpClientFactory)
+        private readonly ILicenseService _licenseService;
+        private readonly IMapService _mapService;
+        private readonly IExploreService _exploreService;
+        private readonly IInfrastructure _infrastructure;
+        public DigService(ILicenseService licenseService, IMapService mapService, IExploreService exploreService, IInfrastructure infrastructure, IHttpClientFactory httpClientFactory)
         {
             _infrastructure = infrastructure;
             _client = _infrastructure.TryCreateClient(httpClientFactory.CreateClient());

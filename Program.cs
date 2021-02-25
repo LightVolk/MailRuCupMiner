@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CommandLine;
 using MailRuCupMiner.Clients;
 using MailRuCupMiner.Services;
+using MailRuCupMiner.Services.Map;
 using Mainerspace;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -86,14 +87,21 @@ namespace MailRuCupMiner
                 services.AddSingleton<IMainWorker, MainWorker>(); // главный класс, в котором происходит вся работа                
                 services.AddSingleton<IExploreService, ExploreService>();
                 services.AddSingleton<ILicenseService, LicenseService>();
-                services.AddSingleton<IMapService, MapService>();
+                services.AddSingleton<MapInfrastructure>();
+                services.AddSingleton<IMapService, RandomMapService>();
+                //services.AddSingleton<IMapService, MapService>();
                 #endregion
 
                 #region transient
-                services.AddTransient<Infrastructure>();
+#if !TEST
+                services.AddTransient<IInfrastructure, Infrastructure>();
+#endif
+#if TEST
+              //  services.AddTransient<IInfrastructure, MockInfrastructure>();
+#endif
                 services.AddTransient<IHelthCheckService, HelthCheckService>();
                 services.AddTransient<IDigService, DigService>();
-                #endregion
+#endregion
 
 
             });

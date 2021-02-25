@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using MailRuCupMiner.Clients;
 using Mainerspace;
 using Serilog;
 
@@ -19,10 +20,10 @@ namespace MailRuCupMiner.Services
 
     public class HelthCheckService : IHelthCheckService
     {
-        private Client _client;
-        private readonly Infrastructure _infr;
+        private IClient _client;
+        private readonly IInfrastructure _infr;
         private readonly IHttpClientFactory _http;
-        public HelthCheckService(Infrastructure infrastructure,IHttpClientFactory httpClientFactory)
+        public HelthCheckService(IInfrastructure infrastructure,IHttpClientFactory httpClientFactory)
         {
             _infr = infrastructure;
             _http = httpClientFactory;

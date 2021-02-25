@@ -1,4 +1,5 @@
-﻿using Mainerspace;
+﻿using MailRuCupMiner.Clients;
+using Mainerspace;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,9 +10,17 @@ using System.Threading.Tasks;
 
 namespace MailRuCupMiner
 {
-    public class Infrastructure
+    public interface IInfrastructure
     {
-        public Client TryCreateClient(HttpClient httpClient)
+        IClient TryCreateClient(HttpClient httpClient);
+        string CreateAddress(string baseAddr);
+        string CreateAddress(string scheme,string address,string port);
+        void WriteLog(string message);
+    }
+
+    public class Infrastructure : IInfrastructure
+    {
+        public IClient TryCreateClient(HttpClient httpClient)
         {
             Client client = null;
             while (client == null)
@@ -19,14 +28,11 @@ namespace MailRuCupMiner
                 try
                 {
                     string address = Environment.GetEnvironmentVariable("ADDRESS");
-//#if DEBUG
-//                    address = "127.0.0.1";
-//                    port = "5000";
-//                    scheme = "http";
-//#endif
+
                     var baseUrl = CreateAddress(address); //CreateAddress(scheme, address, port);
                     client = new Client(baseUrl, httpClient);
-                    Program.Logger.Error($"Create client succesfully! Address:{baseUrl}");
+                    WriteLog($"Create client succesfully! Address:{baseUrl}");
+                    
                 }
                 catch(Exception ex)
                 {

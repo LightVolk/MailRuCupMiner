@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MailRuCupMiner.Models;
+using MailRuCupMiner.Services.Map;
 using Mainerspace;
 
 namespace MailRuCupMiner.Services
@@ -12,12 +13,12 @@ namespace MailRuCupMiner.Services
     {
         private List<Coord> _map;
         private readonly object _lock = new object();
+        private readonly MapInfrastructure _mapInfrastructure;
 
-
-        public MapService()
+        public MapService(MapInfrastructure mapInfrastructure)
         {
+            _mapInfrastructure = mapInfrastructure;
             InitMap();
-
         }
 
         public List<Coord> GetMap()
@@ -74,73 +75,10 @@ namespace MailRuCupMiner.Services
         /// <returns></returns>
         public Area GetFreeArea()
         {
-            return GetFreeAreaInternal(_map, Constants.N);
+            return _mapInfrastructure.GetFreeArea(_map, Constants.N);
         }
 
-        private Area GetFreeAreaInternal(List<Coord> map, int n)
-        {
-            lock (_lock)
-            {
-                for (int coordIndex = 0; coordIndex < map.Count; coordIndex++)
-                {
-                    if (map[coordIndex].IsBusy()) continue;
-
-                    var coordAreaTmp = new List<Coord>();
-                    var coord = map[coordIndex];
-                    bool success = true;
-                    for (int i = coord.X; i < coord.X + n; i++)
-                    {
-                        var findCoord = map.FirstOrDefault(x => x.X == i && coordAreaTmp.Contains(x) == false);
-                        if (findCoord == null) continue;
-
-                        if (findCoord.IsBusy())
-                        {
-                            success = false;
-                            break;
-                        }
-
-                        coordAreaTmp.Add(findCoord);
-                    }
-
-                    if(!success)
-                        continue;
-                   
-
-                    for (int i = coord.Y; i < coord.Y + n; i++)
-                    {
-                        var findCoord = map.FirstOrDefault(x => x.Y == i && coordAreaTmp.Contains(x) == false);
-                        if (findCoord == null) continue;
-
-                        if (findCoord.IsBusy())
-                        {
-                            success = false;
-                            break;
-                        }
-
-                        coordAreaTmp.Add(findCoord);
-                    }
-
-                    if (success && coordAreaTmp.Any())
-                    {
-                        var firstCoord = coordAreaTmp.First();
-                        SetBusy(coordAreaTmp);
-                        return new Area() { PosX = firstCoord.X, PosY = firstCoord.Y, SizeX = n, SizeY = n };
-                    }
-                }
-
-                return null;
-            }
-        }
-
-        private void SetBusy(List<Coord> coords)
-        {
-            if (coords != null)
-                foreach (var coord in coords)
-                {
-                    coord.SetBusy();
-                }
-        }
-
+        
         private List<Coord> InitMap(List<Coord> array, int x, int y)
         {
             if (array != null)

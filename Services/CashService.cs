@@ -10,10 +10,10 @@ namespace MailRuCupMiner.Services
 {
     public class CashService
     {
-        private Infrastructure _infrastructure;
+        private IInfrastructure _infrastructure;
         private IHttpClientFactory _httpClientFactory;
         private IClient _client;
-        public CashService(Infrastructure infrastructure,IHttpClientFactory httpClientFactory)
+        public CashService(IInfrastructure infrastructure,IHttpClientFactory httpClientFactory)
         {
             _infrastructure = infrastructure;
             _httpClientFactory = httpClientFactory;

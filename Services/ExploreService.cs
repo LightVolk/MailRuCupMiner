@@ -46,7 +46,7 @@ namespace MailRuCupMiner.Services
         //private int Ny = 3500;
 
 
-        public ExploreService(Infrastructure infrastructure,IHttpClientFactory httpClientFactory)
+        public ExploreService(IInfrastructure infrastructure,IHttpClientFactory httpClientFactory)
         {
             _client = infrastructure.TryCreateClient(httpClientFactory.CreateClient());
         }

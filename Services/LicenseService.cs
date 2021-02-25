@@ -82,9 +82,9 @@ namespace MailRuCupMiner.Services
         private IClient _client;
         private List<MinerLicense> _licenses;
         private object _lock = new object();
-        private Infrastructure _infrastructure;
+        private IInfrastructure _infrastructure;
         private IHttpClientFactory _clientFactory;
-        public LicenseService(Infrastructure infrastructure, IHttpClientFactory httpClientFactory)
+        public LicenseService(IInfrastructure infrastructure, IHttpClientFactory httpClientFactory)
         {
             _infrastructure = infrastructure;
             _client = _infrastructure.TryCreateClient(httpClientFactory.CreateClient());
@@ -92,40 +92,29 @@ namespace MailRuCupMiner.Services
         }
 
 
-
-        private async Task<ICollection<License>> TryGetLicenseCollection()
-        {
-            ICollection<License> licenses = null;
-            while (licenses == null)
-            {
-                licenses = await _client.ListLicensesAsync();
-                await Task.Delay(50);
-            }
-
-            return licenses;
-        }
-
         private async Task InitFreeLicenses()
         {
-
-            List<MinerLicense> lics = new List<MinerLicense>();
-            for (int i = 0; i < 10; i++)
-            {
-                var lic = await TryGetLicenseFromServerAsync(new int[0]);
-                lock (_lock)
-                {
-                    if (lic == null) continue;
-                    lics.Add(lic);
-                }
-            }
             lock (_lock)
             {
                 _licenses ??= new List<MinerLicense>();
-
-                _licenses.AddRange(lics);
-                _licenses = _licenses.Where(lic => lic.CanDig()).ToList(); //берем только те лицензии, которыми можно копать
-                _infrastructure.WriteLog($"{nameof(InitFreeLicenses)}:{_licenses.Count}");
+                _licenses = ClearOldLicenses(_licenses);
             }
+
+            for (int i = 0; i < 10; i++)
+            {
+                if (_licenses?.Count(licence => licence.CanDig()) < 10)
+                {
+                    var lic = await TryGetLicenseFromServerAsync(new int[0]);
+                    lock (_lock)
+                    {
+                        if (lic == null) continue;
+                        _licenses.Add(lic);
+                    }
+                }
+            }
+
+            _licenses = _licenses.Where(lic => lic.CanDig()).ToList(); //берем только те лицензии, которыми можно копать
+            _infrastructure.WriteLog($"{nameof(InitFreeLicenses)}:{_licenses.Count}");
         }
 
         public async Task<MinerLicense> TryGetLicence()
@@ -176,10 +165,16 @@ namespace MailRuCupMiner.Services
                 {
                     _licenses[i] = license;
                     _licenses[i].SetUnLock();
-                    return;
-
                 }
             }
+
+            ClearOldLicenses(_licenses);
+        }
+
+        private List<MinerLicense> ClearOldLicenses(List<MinerLicense> licenses)
+        {
+            licenses = licenses.Where(license => license.CanDig()).ToList();
+            return licenses;
         }
 
         /// <summary>
@@ -193,13 +188,15 @@ namespace MailRuCupMiner.Services
         {
             try
             {
-                var paidLicense = await _client.IssueLicenseAsync(money);
-                var paidMinerLicense = new MinerLicense(paidLicense, IsPaid.Paid);
-                return paidMinerLicense;
+                var license = await _client.IssueLicenseAsync(money);
+                var typeOfLicense = money.Any() ? IsPaid.Paid : IsPaid.Free;
+                var minerLicense = new MinerLicense(license, typeOfLicense);
+                _infrastructure.WriteLog($"Get miner license: {minerLicense.Id} {minerLicense.CanDig()} {minerLicense.IsPaid()}; Busy: {minerLicense.IsBusy()}");
+                return minerLicense;
             }
             catch (ApiException ex)
             {
-                Program.Logger.Error(ex, "error");
+                _infrastructure.WriteLog($"{ex.Message} {ex.StackTrace}");
             }
 
             return null;
